@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --color-rcf-navy: #181240;
+  --color-rcf-navy-light: #2a2257;
+  --color-rcf-navy-dark: #0f0b2b;
+  --color-rcf-gold: #fbbf24;
+  --color-rcf-gold-light: #fcd34d;
+  --color-rcf-gold-dark: #d97706;
+  
+  --font-family-inter: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    /* Additional base styles can go here */
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar for cleaner UI in lists */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
