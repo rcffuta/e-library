@@ -14,15 +14,9 @@ import { useRouter } from "next/navigation";
 // Zod schema for form validation
 const loginSchema = z.object({
     email: z
-        .string()
-        .min(1, "Email is required")
-        .email("Please enter a valid email address")
-        .refine(
-            (email) => email.includes("@") && (email.endsWith("@futa.edu.ng") || email.includes("rcf")),
-            {
-                message: "Please use your institutional email address (e.g., @futa.edu.ng)",
-            }
-        ),
+        .email({
+            error: "Please enter a valid email address",
+        }),
     password: z
         .string()
         .min(1, "Password is required")
