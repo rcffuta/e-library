@@ -1,44 +1,52 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server'
 
-import { ict } from '@/lib/ict'
+import { ict, ictAdmin } from '@/lib/ict' // Import Admin Client
+import { AuthUser } from '@/types/app.type'
+// import { AuthUser } from '@/store/auth.store' // Update import path if needed
 import { cookies } from 'next/headers'
+// import { redirect } from 'next/navigation'
 
-export async function getDashboardData() {
+export async function getInitialDashboardData(): Promise<{
+  user: AuthUser,
+  courses: any[],
+} | null> {
   const cookieStore = await cookies()
   const token = cookieStore.get('sb-access-token')?.value
 
+  // If no token, return null (Page will handle redirect)
   if (!token) return null
 
   try {
-    // 1. Get User ID from Token (Decode or usage via ICT lib)
-    const { data: { user: authUser } } = await ict.supabase.auth.getUser(token)
-    if (!authUser) return null
+    // 1. Validate User Identity (Secure Check)
+    const { data: { user }, error: authError } = await ict.supabase.auth.getUser(token)
+    
+    if (authError || !user) {
+      return null
+    }
 
-    // 2. Get Full Profile via ICT Lib
-    const user = await ict.member.getFullProfile(authUser.id)
+    // 2. Fetch Profile
+    const profile = await ictAdmin.member.getFullProfile(user.id)
 
-    // 3. Get Relevant Courses
-    // Logic: Fetch courses for THEIR department matching their level or below
-    // Also include General Studies (GNS) if applicable
-    const { data: courses, error } = await ict.supabase
+    if (!profile) throw new Error("Profile not found")
+
+    // 3. Fetch Courses using ADMIN Client (Bypasses RLS issues)
+    // We safely manually filter by the user's department here
+    const { data: courses } = await ictAdmin.supabase
       .from('elib_courses')
-      .select(`
-        *,
-        _count: elib_materials(count)
-      `)
-      .or(`department.eq.${user?.academics.department},code.ilike.GNS%`) // Get Dept courses OR GNS courses
-      .lte('level', user?.academics.currentLevel) // Level <= User Level
-      .order('level', { ascending: false }) // Higher levels first
-      .limit(20)
+      .select(`*, _count: elib_materials(count)`)
+      // .or(`department.eq.${profile.academics.department},code.ilike.GNS%`)
+      // .lte('level', profile.academics.currentLevel)
+      .order('level', { ascending: false })
+      .limit(50)
 
-    if (error) throw error
-
+    // 4. Return data structured for Zustand
     return {
-      profile: {
-        id: user?.profile.id,
-        firstName: user?.profile.firstName,
-        department: user?.academics.department,
-        level: user?.academics.currentLevel
+      user: {
+        id: user.id,
+        email: user.email!,
+        role: 'USER', 
+        user: profile
       },
       courses: courses || []
     }

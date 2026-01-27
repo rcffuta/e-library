@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-
 import { toast } from "sonner";
 import { Loader2, Library, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { loginAction } from "./action";
 import { useRouter } from "next/navigation";
+// import { useAuthStore } from "@/store/auth.store";
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    // const { initialize } = useAuthStore();
 
     async function handleSubmit(formData: FormData) {
         setIsLoading(true);
@@ -28,6 +29,9 @@ export default function LoginPage() {
 
         if (result?.success) {
             toast.success("Welcome back!");
+
+            // Initialize the auth store with fresh session data
+            // await initialize();
 
             // Check role from response to decide where to go
             if (result.role === "ADMIN") {

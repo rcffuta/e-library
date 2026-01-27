@@ -3,6 +3,7 @@ import { RcfIctClient } from '@rcffuta/ict-lib/server'
 // 1. The ICT Client (For Auth, User Profiles, Departments)
 // This runs only on the server
 export const ict = RcfIctClient.fromEnv()
+export const ictAdmin = RcfIctClient.asAdmin();
 
 // 2. The Supabase Admin Client (For E-Lib specific DB operations)
 // Using service role key to bypass RLS when acting as Admin

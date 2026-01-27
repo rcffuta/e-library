@@ -1,31 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect } from "react";
-import { CourseCard } from "@/components/courses/CourseCard";
-import { Loader2 } from "lucide-react";
+import { MaterialCard } from "@/components/courses/MaterialCard";
+import { BookAlertIcon } from "lucide-react";
 import { useAppStore } from "@/store/app.store";
+import { useAuthStore } from "@/store/auth.store";
+import { DepartmentUtils } from "@rcffuta/ict-lib";
 
 interface DashboardShellProps {
-    initialProfile: any;
     initialCourses: any[];
 }
 
-export function DashboardShell({
-    initialProfile,
-    initialCourses,
-}: DashboardShellProps) {
-    const setUser = useAppStore(e=>e.setUser);
-    const searchQuery = useAppStore(e=>e.searchQuery);
+export function DashboardShell({ initialCourses }: DashboardShellProps) {
+    // We use the global search state
+    const searchQuery = useAppStore((s) => s.searchQuery);
 
-    // Hydrate Store on Mount
-    useEffect(() => {
-        if (initialProfile) {
-            setUser(initialProfile);
-        }
-    }, [initialProfile, setUser]);
+    // We get user info from the store (which was just initialized!)
+    const user = useAuthStore(e=>e.user?.user);
 
-    // Client-side filtering logic
+    // Fallback if something really weird happens
+    if (!user) return null;
+
     const filteredCourses = initialCourses.filter((course) => {
         const searchLower = searchQuery.toLowerCase();
         return (
@@ -34,40 +29,43 @@ export function DashboardShell({
         );
     });
 
+    const department = DepartmentUtils.getByAlias(user.academics.department);
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-            {/* Welcome Section */}
+            {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">
-                    Welcome, {initialProfile.firstName} 👋
+                    Welcome, {user.profile.firstName} 👋
                 </h1>
                 <p className="text-gray-500 mt-1">
-                    Here are the recommended resources for{" "}
+                    Showing resources for{" "}
                     <span className="font-medium text-gray-900">
-                        {initialProfile.department} ({initialProfile.level}L)
+                        {department?.name || user.academics.department} (
+                        {user.academics.currentLevel})
                     </span>
-                    .
                 </p>
             </div>
 
             {/* Grid */}
             {filteredCourses.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredCourses.map((course: any) => (
-                        <CourseCard key={course.id} course={course} />
+                    {filteredCourses.map((course) => (
+                        <MaterialCard key={course.id} material={course} />
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-20 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
-                    <div className="mx-auto h-12 w-12 text-gray-400 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                        {/* Or use a 'SearchX' icon if not loading */}
+                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
+                    <div className="h-12 w-12 text-gray-400 bg-gray-50 rounded-xl flex items-center justify-center mb-4">
+                        <BookAlertIcon className="h-6 w-6" />
                     </div>
                     <h3 className="text-lg font-medium text-gray-900">
                         No courses found
                     </h3>
-                    <p className="text-gray-500">
-                        Try adjusting your search query.
+                    <p className="text-gray-500 text-sm mt-1">
+                        {searchQuery
+                            ? `No results for "${searchQuery}"`
+                            : "No courses available for your level yet."}
                     </p>
                 </div>
             )}

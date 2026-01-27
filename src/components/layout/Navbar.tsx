@@ -1,13 +1,16 @@
 "use client";
 
 import { useAppStore } from "@/store/app.store";
-import { Search, Bell } from "lucide-react";
-
+import { useAuthStore } from "@/store/auth.store";
+import { Search, Bell, LogOut } from "lucide-react";
 
 export function Navbar() {
-    const user = useAppStore(e=>e.user);
-    const searchQuery = useAppStore(e=>e.searchQuery);
-    const setSearchQuery = useAppStore(e=>e.setSearchQuery);
+    const searchQuery = useAppStore(e => e.searchQuery);
+    const setSearchQuery = useAppStore(e => e.setSearchQuery);
+    const userFullName = useAuthStore(e => e.user?.user.profile.firstName);
+    const userDepartment = useAuthStore(e => e.user?.user.academics.department);
+    const userLevel = useAuthStore(e => e.user?.user.academics.currentLevel);
+    // const signOut = useAuthStore(e => e.signOut);
     // const router = useRouter();
 
     return (
@@ -42,15 +45,25 @@ export function Navbar() {
 
                     <div className="hidden md:flex flex-col items-end text-right">
                         <span className="text-sm font-medium text-gray-900">
-                            {user?.firstName}
+                            {userFullName || 'User'}
                         </span>
                         <span className="text-xs text-gray-500">
-                            {user?.department} • {user?.level}L
+                            {userDepartment || 'Department'} • {userLevel || 'XLevel'}
                         </span>
                     </div>
 
-                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200">
-                        {user?.firstName.charAt(0)}
+                    <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-rcf-gold flex items-center justify-center text-rcf-navy font-bold border border-rcf-gold">
+                            {(userFullName || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        
+                        <button
+                            // onClick={}
+                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                            title="Sign Out"
+                        >
+                            <LogOut className="h-4 w-4" />
+                        </button>
                     </div>
                 </div>
             </div>
