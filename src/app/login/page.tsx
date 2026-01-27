@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { toast } from "sonner";
 import { Loader2, Library, BookOpen, GraduationCap, Users, BookOpenCheck, Quote } from "lucide-react";
 import Link from "next/link";
@@ -8,16 +11,52 @@ import { loginAction } from "./action";
 import { useRouter } from "next/navigation";
 // import { useAuthStore } from "@/store/auth.store";
 
+// Zod schema for form validation
+const loginSchema = z.object({
+    email: z
+        .string()
+        .min(1, "Email is required")
+        .email("Please enter a valid email address")
+        .refine(
+            (email) => email.includes("@") && (email.endsWith("@futa.edu.ng") || email.includes("rcf")),
+            {
+                message: "Please use your institutional email address (e.g., @futa.edu.ng)",
+            }
+        ),
+    password: z
+        .string()
+        .min(1, "Password is required")
+        .min(6, "Password must be at least 6 characters long"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
     // const { initialize } = useAuthStore();
 
-    async function handleSubmit(formData: FormData) {
+    // Initialize form with Zod validation
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isValid },
+        reset,
+    } = useForm<LoginFormData>({
+        resolver: zodResolver(loginSchema),
+        mode: "onChange", // Validate on change for better UX
+    });
+
+    async function onSubmit(data: LoginFormData) {
         setIsLoading(true);
         toast.loading("Signing you in...", {
             id: "login-toast",
         });
+
+        // Create FormData for server action
+        const formData = new FormData();
+        formData.append("email", data.email);
+        formData.append("password", data.password);
 
         // Server Action
         const result = await loginAction(formData);
@@ -36,6 +75,9 @@ export default function LoginPage() {
             toast.success("Welcome back!", {
                 id: 'login-toast'
             });
+
+            // Reset form on success
+            reset();
 
             // Initialize the auth store with fresh session data
             // await initialize();
@@ -226,8 +268,8 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    {/* Enhanced Form */}
-                    <form action={handleSubmit} className="mt-8 space-y-6">
+                    {/* Enhanced Form with Validation */}
+                    <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
                         <div className="space-y-5">
                             <div>
                                 <label
@@ -237,14 +279,22 @@ export default function LoginPage() {
                                     Fellowship Email Address
                                 </label>
                                 <input
+                                    {...register("email")}
                                     id="email"
-                                    name="email"
                                     type="email"
                                     autoComplete="email"
-                                    required
                                     placeholder="yourname@futa.edu.ng"
-                                    className="block w-full rounded-xl border-2 border-gray-300 bg-white px-4 py-3.5 text-gray-900 placeholder-gray-500 shadow-sm transition-all duration-200 focus:border-rcf-gold focus:bg-white focus:outline-none focus:ring-2 focus:ring-rcf-gold/20 hover:border-gray-400 sm:text-sm"
+                                    className={`block w-full rounded-xl border-2 bg-white px-4 py-3.5 text-gray-900 placeholder-gray-500 shadow-sm transition-all duration-200 focus:bg-white focus:outline-none focus:ring-2 sm:text-sm ${
+                                        errors.email
+                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
+                                            : "border-gray-300 focus:border-rcf-gold focus:ring-rcf-gold/20 hover:border-gray-400"
+                                    }`}
                                 />
+                                {errors.email && (
+                                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                                        <span className="font-medium">⚠️ {errors.email.message}</span>
+                                    </p>
+                                )}
                             </div>
 
                             <div>
@@ -255,14 +305,22 @@ export default function LoginPage() {
                                     Password
                                 </label>
                                 <input
+                                    {...register("password")}
                                     id="password"
-                                    name="password"
                                     type="password"
                                     autoComplete="current-password"
-                                    required
                                     placeholder="••••••••"
-                                    className="block w-full rounded-xl border-2 border-gray-300 bg-white px-4 py-3.5 text-gray-900 placeholder-gray-500 shadow-sm transition-all duration-200 focus:border-rcf-gold focus:bg-white focus:outline-none focus:ring-2 focus:ring-rcf-gold/20 hover:border-gray-400 sm:text-sm"
+                                    className={`block w-full rounded-xl border-2 bg-white px-4 py-3.5 text-gray-900 placeholder-gray-500 shadow-sm transition-all duration-200 focus:bg-white focus:outline-none focus:ring-2 sm:text-sm ${
+                                        errors.password
+                                            ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
+                                            : "border-gray-300 focus:border-rcf-gold focus:ring-rcf-gold/20 hover:border-gray-400"
+                                    }`}
                                 />
+                                {errors.password && (
+                                    <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                                        <span className="font-medium">⚠️ {errors.password.message}</span>
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -279,7 +337,7 @@ export default function LoginPage() {
 
                         <button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={isLoading || !isValid}
                             className="group relative flex w-full justify-center rounded-xl bg-linear-to-r from-rcf-navy to-rcf-navy-light px-4 py-3.5 text-sm font-semibold text-white shadow-lg hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rcf-navy disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200 hover:-translate-y-0.5 disabled:hover:translate-y-0"
                         >
                             <span className="absolute left-0 inset-y-0 flex items-center pl-3">
