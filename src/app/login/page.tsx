@@ -328,7 +328,7 @@ export default function LoginPage() {
                                 <div className="h-1 w-1 bg-rcf-gold rounded-full"></div>
                             </div>
                             <div className="text-xs text-gray-500">
-                                &copy; {new Date().getFullYear()} Rivers College Fellowship, FUTA • Library & ICT Unit
+                                &copy; {new Date().getFullYear()} Rivers College Fellowship, FUTA • Library Unit
                             </div>
                         </div>
                     </div>
