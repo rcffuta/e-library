@@ -273,18 +273,25 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="group relative flex w-full justify-center rounded-xl bg-linear-to-r from-rcf-navy to-rcf-navy-light px-4 py-3.5 text-sm font-semibold text-white shadow-lg hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rcf-navy disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200 hover:-translate-y-0.5"
+                            className="group relative flex w-full justify-center rounded-xl bg-linear-to-r from-rcf-navy to-rcf-navy-light px-4 py-3.5 text-sm font-semibold text-white shadow-lg hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rcf-navy disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200 hover:-translate-y-0.5 disabled:hover:translate-y-0"
                         >
                             <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                                {!isLoading && (
+                                {isLoading ? (
+                                    <Loader2 className="h-5 w-5 text-rcf-gold animate-spin" />
+                                ) : (
                                     <Library className="h-5 w-5 text-rcf-gold" />
                                 )}
                             </span>
-                            {isLoading ? (
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                            ) : (
-                                "Access Digital Library"
-                            )}
+                            <span className="flex items-center gap-2">
+                                {isLoading ? (
+                                    <>
+                                        <span>Signing In...</span>
+                                        <Loader2 className="h-4 w-4 animate-spin lg:hidden" />
+                                    </>
+                                ) : (
+                                    "Access Digital Library"
+                                )}
+                            </span>
                         </button>
                     </form>
 
