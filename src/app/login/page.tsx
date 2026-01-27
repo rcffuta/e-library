@@ -15,6 +15,9 @@ export default function LoginPage() {
 
     async function handleSubmit(formData: FormData) {
         setIsLoading(true);
+        toast.loading("Signing you in...", {
+            id: "login-toast",
+        });
 
         // Server Action
         const result = await loginAction(formData);
@@ -22,13 +25,17 @@ export default function LoginPage() {
         // If we get a result back, it means there was an error
         // (Success redirects automatically)
         if (result?.error) {
-            toast.error(result.error);
+            toast.error(result.error, {
+                id: "login-toast",
+            });
             setIsLoading(false);
             return;
         }
 
         if (result?.success) {
-            toast.success("Welcome back!");
+            toast.success("Welcome back!", {
+                id: 'login-toast'
+            });
 
             // Initialize the auth store with fresh session data
             // await initialize();
